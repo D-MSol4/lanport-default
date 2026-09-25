@@ -2,10 +2,13 @@ package net.lanportdefault.mixin;
 
 import net.lanportdefault.LanPortDefaultClient;
 import net.lanportdefault.LanPortDefaultConfig;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.LayoutElement;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.WorldOptionsScreen;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,6 +16,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
@@ -30,17 +34,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * survives the LAN toggle and reaches Apply. Only an EMPTY field is filled: while a world is
  * published the field holds the live port, and that running publication is left alone.
  *
- * <p><b>2. "Set default" button.</b> A small button to the right of the field saves whatever
- * port is in it as the new default, so the config file never has to be edited by hand. It is
- * carved out of the field's own width on every layout pass ({@code repositionElements}), which
- * keeps it inside the vanilla layout box and following resizes and scrolling.
+ * <p><b>2. "Set default" button.</b> A small button next to the field saves whatever port is
+ * in it as the new default, so the config file never has to be edited by hand.
+ *
+ * <p>The button is NOT added as a screen-level widget: the screen wraps its content in a
+ * {@code ScrollableLayout}, whose container is earlier in the screen's child list and swallows
+ * clicks aimed at widgets drawn on top of it. Instead the field's own {@code addChild} call is
+ * redirected to put the field and the button side by side in a horizontal layout inside the
+ * same grid cell. The vanilla layout then positions, renders and routes clicks for both — it
+ * scrolls and resizes with the rest of the screen for free.
  */
 @Mixin(WorldOptionsScreen.class)
-public abstract class WorldOptionsScreenMixin extends Screen {
+public abstract class WorldOptionsScreenMixin {
 
-    /** Width of the little button and the gap to the port field, in GUI units. */
+    /** Button width, the gap to the field, and the field width that leaves room for both. */
     private static final int LPD_BUTTON_WIDTH = 30;
     private static final int LPD_GAP = 4;
+    /** The multiplayer grid's right column is 308 wide (its game-mode buttons); 308 - 30 - 4. */
+    private static final int LPD_FIELD_WIDTH = 274;
 
     @Shadow
     private EditBox portEdit;
@@ -54,18 +65,6 @@ public abstract class WorldOptionsScreenMixin extends Screen {
     @Unique
     private Button lanportdefault$defaultButton;
 
-    /**
-     * The field's width as laid out by vanilla, captured on every layout pass. The button
-     * placement always derives from this, never from the already-shrunk width, which makes it
-     * idempotent across repeated layout passes.
-     */
-    @Unique
-    private int lanportdefault$fullWidth = -1;
-
-    protected WorldOptionsScreenMixin(Component title) {
-        super(title);
-    }
-
     @Inject(method = "updatePortControlsState", at = @At("TAIL"))
     private void lanportdefault$prefillLanPort(CallbackInfo ci) {
         int port = LanPortDefaultConfig.port();
@@ -76,8 +75,30 @@ public abstract class WorldOptionsScreenMixin extends Screen {
         LanPortDefaultClient.LOGGER.info("[LAN Port Default] Pre-filled LAN port {}", port);
     }
 
-    @Inject(method = "init", at = @At("TAIL"))
-    private void lanportdefault$addDefaultButton(CallbackInfo ci) {
+    /**
+     * Replaces the port field's own grid cell content with a row holding the field plus the
+     * button. {@code ordinal = 1} targets the second one-argument {@code addChild} call in
+     * {@code multiplayerOptions} — the first is the LAN toggle, this one is the port field.
+     */
+    @Redirect(
+            method = "multiplayerOptions",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/layouts/GridLayout$RowHelper;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;)Lnet/minecraft/client/gui/layouts/LayoutElement;",
+                    ordinal = 1))
+    private LayoutElement lanportdefault$addButtonNextToPortField(GridLayout.RowHelper helper, LayoutElement widget) {
+        if (widget instanceof AbstractWidget field) {
+            field.setWidth(LPD_FIELD_WIDTH);
+        }
+        LinearLayout row = LinearLayout.horizontal().spacing(LPD_GAP);
+        row.addChild(widget);
+        row.addChild(this.lanportdefault$createDefaultButton());
+        LanPortDefaultClient.LOGGER.info("[LAN Port Default] Button attached next to {}", widget.getClass().getSimpleName());
+        return helper.addChild(row);
+    }
+
+    @Unique
+    private Button lanportdefault$createDefaultButton() {
         if (this.lanportdefault$defaultButton == null) {
             this.lanportdefault$defaultButton = Button.builder(
                             Component.translatable("lanportdefault.button.set_default"),
@@ -87,32 +108,7 @@ public abstract class WorldOptionsScreenMixin extends Screen {
             this.lanportdefault$defaultButton.setTooltip(
                     Tooltip.create(Component.translatable("lanportdefault.button.set_default.tooltip")));
         }
-        this.addRenderableWidget(this.lanportdefault$defaultButton);
-        this.lanportdefault$placeButton();
-    }
-
-    @Inject(method = "repositionElements", at = @At("TAIL"))
-    private void lanportdefault$afterLayout(CallbackInfo ci) {
-        if (this.portEdit == null) {
-            return;
-        }
-        this.lanportdefault$fullWidth = this.portEdit.getWidth();
-        this.lanportdefault$placeButton();
-    }
-
-    /** Shrinks the port field and drops the button into the freed strip. */
-    @Unique
-    private void lanportdefault$placeButton() {
-        if (this.portEdit == null || this.lanportdefault$fullWidth <= 0) {
-            return;
-        }
-        int width = Math.max(40, this.lanportdefault$fullWidth - LPD_BUTTON_WIDTH - LPD_GAP);
-        this.portEdit.setWidth(width);
-        if (this.lanportdefault$defaultButton != null) {
-            this.lanportdefault$defaultButton.setX(this.portEdit.getX() + width + LPD_GAP);
-            this.lanportdefault$defaultButton.setY(this.portEdit.getY());
-            this.lanportdefault$defaultButton.setHeight(this.portEdit.getHeight());
-        }
+        return this.lanportdefault$defaultButton;
     }
 
     /** Saves whatever port is in the field as the new default, with chat feedback either way. */
