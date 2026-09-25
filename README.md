@@ -7,6 +7,8 @@ default from inside the game.
 
 No blocks, no items, no commands, no networking, no Fabric API dependency.
 
+![World Options with the LAN port pre-filled and the DEF button](docs/screenshot.png)
+
 ## Why
 
 Vanilla leaves the port field empty and picks a random free port every time you publish. That

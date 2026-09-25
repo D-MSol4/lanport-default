@@ -11,6 +11,7 @@
 		"sources": "https://github.com/D-MSol4/lanport-default"
 	},
 	"license": "MIT",
+	"icon": "assets/lanportdefault/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
