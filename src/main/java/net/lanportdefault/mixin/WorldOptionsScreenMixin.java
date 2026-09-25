@@ -47,11 +47,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(WorldOptionsScreen.class)
 public abstract class WorldOptionsScreenMixin {
 
-    /** Button width, the gap to the field, and the field width that leaves room for both. */
+    /** Button width, the gap to the field, and the field width that keeps the row at 150. */
     private static final int LPD_BUTTON_WIDTH = 30;
     private static final int LPD_GAP = 4;
-    /** The multiplayer grid's right column is 308 wide (its game-mode buttons); 308 - 30 - 4. */
-    private static final int LPD_FIELD_WIDTH = 274;
+    /** The grid column is 150 wide (the field's own default width); 150 - 30 - 4. */
+    private static final int LPD_FIELD_WIDTH = 116;
 
     @Shadow
     private EditBox portEdit;
