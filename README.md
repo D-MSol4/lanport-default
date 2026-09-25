@@ -45,3 +45,7 @@ Requires JDK 25. Minecraft 26.1+ ships unobfuscated, so this uses the non-remapp
 ```
 
 The jar lands in `build/libs/` and goes straight into `mods/`.
+
+## License
+
+[MIT](LICENSE).

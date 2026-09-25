@@ -10,7 +10,7 @@
 	"contact": {
 		"sources": "https://github.com/D-MSol4/lanport-default"
 	},
-	"license": "CC-BY-NC-4.0",
+	"license": "MIT",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
