@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "lanportdefault",
+	"version": "${version}",
+	"name": "LAN Port Default",
+	"description": "Pre-fills the LAN port field in the World Options screen with a fixed, configurable port, so a world is always shared on the same address.",
+	"authors": [
+		"D-MSol4"
+	],
+	"contact": {
+		"sources": "https://github.com/D-MSol4/lanport-default"
+	},
+	"license": "CC-BY-NC-4.0",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"net.lanportdefault.LanPortDefaultClient"
+		]
+	},
+	"mixins": [
+		{
+			"config": "lanportdefault.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": ">=26.3 <26.4",
+		"java": ">=25"
+	}
+}

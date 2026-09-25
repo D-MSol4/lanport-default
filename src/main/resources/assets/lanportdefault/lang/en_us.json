@@ -1,0 +1,6 @@
+{
+	"lanportdefault.button.set_default": "DEF",
+	"lanportdefault.button.set_default.tooltip": "Save the port in the field as the default LAN port",
+	"lanportdefault.saved": "Default LAN port saved: %s",
+	"lanportdefault.invalid": "Not a valid port (1024-65535): %s"
+}

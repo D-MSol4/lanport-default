@@ -1,0 +1,6 @@
+{
+	"lanportdefault.button.set_default": "DEF",
+	"lanportdefault.button.set_default.tooltip": "Guardar el puerto del campo como puerto por defecto",
+	"lanportdefault.saved": "Puerto por defecto guardado: %s",
+	"lanportdefault.invalid": "Puerto no válido (1024-65535): %s"
+}

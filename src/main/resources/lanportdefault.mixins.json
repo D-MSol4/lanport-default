@@ -1,0 +1,11 @@
+{
+	"required": false,
+	"package": "net.lanportdefault.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"WorldOptionsScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
