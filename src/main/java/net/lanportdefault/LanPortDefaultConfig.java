@@ -18,7 +18,7 @@ public final class LanPortDefaultConfig {
 
     private static final String FILE_NAME = "lanport-default.properties";
     /** Written on first launch. 0 disables the pre-fill entirely. */
-    private static final int DEFAULT_PORT = 38472;
+    private static final int DEFAULT_PORT = 25565;
     private static final int MIN_PORT = 1024;
     private static final int MAX_PORT = 65535;
     private static final String HEADER =

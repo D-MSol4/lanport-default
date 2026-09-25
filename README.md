@@ -21,7 +21,7 @@ Created on first launch at `config/lanport-default.properties`:
 ```properties
 # LAN port pre-filled in the World Options screen (1024-65535).
 # 0 = disabled: vanilla picks a random free port on every publish.
-port=38472
+port=25565
 ```
 
 The file is re-read every time the screen opens, so edits apply without restarting the game.
